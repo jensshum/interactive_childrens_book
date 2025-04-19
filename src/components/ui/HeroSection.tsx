@@ -50,7 +50,7 @@ export default function HeroSection() {
             >
               <div className="relative z-10 bg-white rounded-2xl shadow-storybook overflow-hidden">
                 <img
-                  src="https://images.pexels.com/photos/6204340/pexels-photo-6204340.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1"
+                  src="https://reachoutandread.org/wp-content/uploads/2019/08/ChildDevelop_image_3.jpg"
                   alt="Child reading a storybook"
                   className="w-full rounded-2xl"
                 />
