@@ -55,7 +55,7 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
             className="w-full h-full flex flex-col md:flex-row"
           >
             {/* Image side */}
-            <div className="w-full md:w-1/2 h-1/2 md:h-full relative">
+            <div className="w-full md:w-2/3 h-1/2 md:h-full relative">
               <img
                 src={currentPage.image}
                 alt={`Story page ${currentPageIndex + 1}`}
@@ -84,7 +84,7 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
             </div>
             
             {/* Text side */}
-            <div className="w-full md:w-1/2 h-1/2 md:h-full p-6 md:p-10 flex flex-col justify-center bg-gradient-to-b from-blue-50 to-yellow-50">
+            <div className="w-full md:w-1/3 h-1/2 md:h-full p-6 md:p-10 flex flex-col justify-center bg-gradient-to-b from-blue-50 to-yellow-50">
               <div className={`text-gray-800 text-lg md:text-xl leading-relaxed font-medium mb-6 ${isReading ? 'text-primary-700' : ''}`}>
                 {currentPage.text}
               </div>

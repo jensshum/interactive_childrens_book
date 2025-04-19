@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Story, StoryCharacter, CustomizedStory, StoryPage, StoryPrompt } from '../types/story';
 import { presetStories } from '../data/presetStories';
-import { generateStoryContent } from '../utils/gemini';
+import { generateStoryContent, generateStoryImage } from '../utils/gemini';
 
 interface StoryState {
   presetStories: Story[];
@@ -157,11 +157,14 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       for (const paragraph of paragraphs) {
         if ((currentPageText + paragraph).split(' ').length > 100) {
+          // Generate image for the current page
+          const imageUrl = await generateStoryImage(currentCharacter, currentPageText, pageId);
+          
           // Create a new page with the accumulated text
           pages.push({
             id: pageId++,
             text: currentPageText.trim(),
-            image: `https://source.unsplash.com/random/800x600?${prompt.theme || 'adventure'},${prompt.setting || 'magical forest'}&sig=${pageId}`,
+            image: imageUrl,
             interactions: []
           });
           currentPageText = paragraph;
@@ -172,10 +175,11 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       // Add the last page if there's remaining text
       if (currentPageText.trim()) {
+        const imageUrl = await generateStoryImage(currentCharacter, currentPageText, pageId);
         pages.push({
           id: pageId,
           text: currentPageText.trim(),
-          image: `https://source.unsplash.com/random/800x600?${prompt.theme || 'adventure'},${prompt.setting || 'magical forest'}&sig=${pageId}`,
+          image: imageUrl,
           interactions: []
         });
       }
