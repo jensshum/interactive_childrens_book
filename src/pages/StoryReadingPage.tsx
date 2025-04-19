@@ -1,17 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Share2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Share2, Loader2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStoryStore } from '../store/useStoryStore';
 import StoryBookReader from '../components/story/StoryBookReader';
+import { saveStoryToSupabase } from '../utils/supabase';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function StoryReadingPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
   const { customStories, selectedStory, currentCharacter, currentPages } = useStoryStore();
+  const { user } = useAuth();
   
   const [story, setStory] = useState<any>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   
   useEffect(() => {
     document.title = "Reading Story - StoryPals";
@@ -35,6 +40,40 @@ export default function StoryReadingPage() {
       navigate('/');
     }
   }, [storyId, customStories, currentPages, currentCharacter, selectedStory, navigate]);
+  
+  const handleSaveStory = async () => {
+    if (!user) {
+      setSaveError('Please sign in to save your story');
+      return;
+    }
+
+    if (!story) {
+      setSaveError('No story to save');
+      return;
+    }
+
+    try {
+      setIsSaving(true);
+      setSaveError(null);
+
+      const storyToSave = {
+        storyId: storyId || `custom-${Date.now()}`,
+        character: story.character,
+        pages: story.pages,
+        dateCreated: new Date(),
+        title: story.title
+      };
+
+      await saveStoryToSupabase(storyToSave, user.id);
+      // Show success message or redirect
+      navigate('/my-stories');
+    } catch (error) {
+      console.error('Error saving story:', error);
+      setSaveError('Failed to save story. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
   
   if (!story) {
     return (
@@ -72,16 +111,36 @@ export default function StoryReadingPage() {
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <Share2 size={20} className="text-gray-600" />
             </button>
-            <button className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center">
-              <BookOpen size={18} className="mr-2" />
-              <span className="hidden md:inline">Save Story</span>
+            <button 
+              onClick={handleSaveStory}
+              disabled={isSaving}
+              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSaving ? (
+                <>
+                  <Loader2 size={18} className="mr-2 animate-spin" />
+                  <span className="hidden md:inline">Saving...</span>
+                </>
+              ) : (
+                <>
+                  <BookOpen size={18} className="mr-2" />
+                  <span className="hidden md:inline">Save Story</span>
+                </>
+              )}
             </button>
           </div>
         </div>
+
+        {saveError && (
+          <div className="mb-4 p-4 bg-red-50 text-red-600 rounded-lg">
+            {saveError}
+          </div>
+        )}
         
         <StoryBookReader 
           pages={story.pages} 
           characterName={story.character.name}
+          voiceId={story.voiceId}
         />
       </motion.div>
     </div>

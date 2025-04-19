@@ -19,16 +19,18 @@ export async function generateStoryImage(
   try {
     const stylePrompt = getStylePrompt(character.artStyle);
     const sceneDescription = await generateImageDescription(scene);
-    
     // Create the prompt for the image generation
     const imagePrompt = `A children's book illustration in ${stylePrompt}. 
     Scene: ${sceneDescription}
     The image should be vibrant, engaging, and suitable for children, and should portray what is happening in the Scene.`;
     
+    // Generate the initial image
+    let imageUrl: string;
+    
     // If there's a reference photo, use image-to-image, otherwise use text-to-image
     if (character.photo) {
-      console.log("BEANS", imagePrompt);
-      const result = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
+      console.log("Generating image from reference photo...");
+      const imageResult = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
         input: {
           image_url: character.photo,
           prompt: imagePrompt,
@@ -45,11 +47,11 @@ export async function generateStoryImage(
         },
       });
       
-      console.log(result.data.images[0].url);
-      return result.data.images[0].url;
+      imageUrl = imageResult.data.images[0].url;
     } else {
       // If no reference photo is available, use text-to-image
-      const result = await fal.subscribe("fal-ai/flux/dev/text-to-image", {
+      console.log("Generating image from text prompt...");
+      const imageResult = await fal.subscribe("fal-ai/flux/dev/text-to-image", {
         input: {
           prompt: imagePrompt,
           // Optional parameters
@@ -67,7 +69,33 @@ export async function generateStoryImage(
         },
       });
       
-      return result.data.images[0].url;
+      imageUrl = imageResult.data.images[0].url;
+    }
+    
+    console.log(imageUrl);
+    // Now that we have the image, generate a video from it
+    try {
+      console.log("Generating video from the generated image...");
+      const videoResult = await fal.subscribe("fal-ai/wan-i2v", {
+        input: {
+          prompt: sceneDescription,
+          image_url: imageUrl,
+          // No end_image_url needed as per requirements
+        },
+        logs: true,
+        onQueueUpdate: (update) => {
+          if (update.status === "IN_PROGRESS") {
+            update.logs.map((log) => log.message).forEach(console.log);
+          }
+        },
+      });
+      
+      console.log("Video generated successfully:", videoResult.requestId);
+      return videoResult.data.video.url;
+    } catch (videoError) {
+      console.error('Error generating video with fal.ai:', videoError);
+      // Fall back to using the image if video generation fails
+      return imageUrl;
     }
   } catch (error) {
     console.error('Error generating image with fal.ai:', error);

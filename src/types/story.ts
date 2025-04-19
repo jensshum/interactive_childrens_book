@@ -10,7 +10,7 @@ export interface Story {
 export interface StoryPage {
   id: number;
   text: string;
-  image: string;
+  image: string; // This can be an image URL or a video URL
   interactions?: Interaction[];
 }
 
@@ -37,6 +37,7 @@ export interface StoryPrompt {
   characters?: string[];
   plotElements?: string[];
   customPrompt?: string;
+  voiceId?: string;
 }
 
 export interface CustomizedStory {

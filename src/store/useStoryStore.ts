@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { Story, StoryCharacter, CustomizedStory, StoryPage, StoryPrompt } from '../types/story';
 import { presetStories } from '../data/presetStories';
-import { generateStoryContent, generateStoryImage } from '../utils/gemini';
+import { generateStoryContent, generateStoryImage } from '../utils/fal';
 
 interface StoryState {
   presetStories: Story[];

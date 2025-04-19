@@ -1,43 +1,106 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Volume2, VolumeX } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Volume2, VolumeX, Play, Pause } from 'lucide-react';
 import { StoryPage } from '../../types/story';
+import { generateSpeech } from '../../utils/elevenlabs';
 
 interface StoryBookReaderProps {
   pages: StoryPage[];
   characterName: string;
+  voiceId?: string;
 }
 
-export default function StoryBookReader({ pages, characterName }: StoryBookReaderProps) {
+export default function StoryBookReader({ pages, characterName, voiceId }: StoryBookReaderProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
   const [isSoundOn, setIsSoundOn] = useState(true);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isVideoPlaying, setIsVideoPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
   const currentPage = pages[currentPageIndex];
   const totalPages = pages.length;
 
   const goToNextPage = () => {
     if (currentPageIndex < totalPages - 1) {
       setCurrentPageIndex(currentPageIndex + 1);
+      setIsVideoPlaying(false);
     }
   };
 
   const goToPreviousPage = () => {
     if (currentPageIndex > 0) {
       setCurrentPageIndex(currentPageIndex - 1);
+      setIsVideoPlaying(false);
     }
   };
 
-  // Auto-read text (simulated)
-  const [isReading, setIsReading] = useState(false);
-
+  // Generate audio for the current page
   useEffect(() => {
-    if (isSoundOn) {
-      setIsReading(true);
-      const timer = setTimeout(() => {
-        setIsReading(false);
-      }, 5000);
-      return () => clearTimeout(timer);
+    const generateAudioForPage = async () => {
+      if (!currentPage || !isSoundOn) return;
+      
+      try {
+        setIsLoadingAudio(true);
+        // Clean up previous audio URL if it exists
+        if (audioUrl) {
+          URL.revokeObjectURL(audioUrl);
+        }
+        
+        // Generate new audio for the current page using the selected voice
+        const newAudioUrl = await generateSpeech(currentPage.text, voiceId);
+        setAudioUrl(newAudioUrl);
+        
+        // Play the audio
+        if (audioRef.current) {
+          audioRef.current.src = newAudioUrl;
+          audioRef.current.play();
+        }
+      } catch (error) {
+        console.error('Error generating audio:', error);
+      } finally {
+        setIsLoadingAudio(false);
+      }
+    };
+    
+    generateAudioForPage();
+    
+    // Cleanup function
+    return () => {
+      if (audioUrl) {
+        URL.revokeObjectURL(audioUrl);
+      }
+    };
+  }, [currentPageIndex, isSoundOn, currentPage, voiceId]);
+
+  // Toggle sound on/off
+  const toggleSound = () => {
+    setIsSoundOn(!isSoundOn);
+    if (audioRef.current) {
+      if (!isSoundOn) {
+        audioRef.current.play();
+      } else {
+        audioRef.current.pause();
+      }
     }
-  }, [currentPageIndex, isSoundOn]);
+  };
+
+  // Toggle video play/pause
+  const toggleVideo = () => {
+    if (videoRef.current) {
+      if (isVideoPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setIsVideoPlaying(!isVideoPlaying);
+    }
+  };
+
+  // Handle video ended event
+  const handleVideoEnded = () => {
+    setIsVideoPlaying(false);
+  };
 
   if (!currentPage) return null;
 
@@ -54,13 +117,26 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
             transition={{ duration: 0.5 }}
             className="w-full h-full flex flex-col md:flex-row"
           >
-            {/* Image side */}
+            {/* Video side */}
             <div className="w-full md:w-2/3 h-1/2 md:h-full relative">
-              <img
+              <video
+                ref={videoRef}
                 src={currentPage.image}
-                alt={`Story page ${currentPageIndex + 1}`}
                 className="w-full h-full object-cover"
+                onEnded={handleVideoEnded}
+                loop={false}
+                playsInline
               />
+              
+              {/* Video controls overlay */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-black bg-opacity-50 rounded-full px-4 py-2">
+                <button
+                  onClick={toggleVideo}
+                  className="text-white hover:text-primary-300 transition-colors"
+                >
+                  {isVideoPlaying ? <Pause size={24} /> : <Play size={24} />}
+                </button>
+              </div>
               
               {/* Interactive elements */}
               {currentPage.interactions?.map((interaction) => (
@@ -85,7 +161,7 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
             
             {/* Text side */}
             <div className="w-full md:w-1/3 h-1/2 md:h-full p-6 md:p-10 flex flex-col justify-center bg-gradient-to-b from-blue-50 to-yellow-50">
-              <div className={`text-gray-800 text-lg md:text-xl leading-relaxed font-medium mb-6 ${isReading ? 'text-primary-700' : ''}`}>
+              <div className="text-gray-800 text-lg md:text-xl leading-relaxed font-medium mb-6">
                 {currentPage.text}
               </div>
               
@@ -95,10 +171,13 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
                 </div>
                 
                 <button
-                  onClick={() => setIsSoundOn(!isSoundOn)}
+                  onClick={toggleSound}
                   className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                  disabled={isLoadingAudio}
                 >
-                  {isSoundOn ? (
+                  {isLoadingAudio ? (
+                    <div className="w-5 h-5 border-2 border-secondary-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : isSoundOn ? (
                     <Volume2 size={20} className="text-secondary-500" />
                   ) : (
                     <VolumeX size={20} className="text-gray-400" />
@@ -135,6 +214,9 @@ export default function StoryBookReader({ pages, characterName }: StoryBookReade
           </button>
         </div>
       </div>
+      
+      {/* Hidden audio element */}
+      <audio ref={audioRef} className="hidden" />
     </div>
   );
 }

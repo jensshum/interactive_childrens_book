@@ -83,13 +83,13 @@ export default function StoryCustomizationPage() {
   const getStepDescription = () => {
     switch (step) {
       case 'select':
-        return 'Select a story to customize for your child';
+        return 'Choose a story template or create your own custom story.';
       case 'customize':
-        return 'Make your child the star of this adventure';
+        return 'Personalize your story by creating a character that represents you or your child.';
       case 'prompt':
-        return 'Tell us what kind of story you want to create';
+        return 'Add details to your story. We\'ll generate an animated video for each page using AI.';
       case 'preview':
-        return 'Review your personalized storybook before reading';
+        return 'Preview your story before saving it.';
       default:
         return '';
     }
