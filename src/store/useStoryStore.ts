@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Story, StoryCharacter, CustomizedStory, StoryPage, StoryPrompt } from '../types/story';
 import { presetStories } from '../data/presetStories';
+import { generateStoryContent } from '../utils/gemini';
 
 interface StoryState {
   presetStories: Story[];
@@ -137,66 +138,54 @@ export const useStoryStore = create<StoryState>((set, get) => ({
     
     set({ isGenerating: true });
     
-    // In a real app, this would call an API with ChatGPT
-    // For now, we'll simulate with a timeout and dummy data
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    const theme = prompt.theme || 'adventure';
-    const setting = prompt.setting || 'magical forest';
-    
-    // Generate dummy pages based on the prompt
-    const generatedPages: StoryPage[] = [
-      {
-        id: 1,
-        text: `In a ${setting}, there lived a brave young ${currentCharacter.gender === 'neutral' ? 'child' : currentCharacter.gender} named ${currentCharacter.name}. Everyone knew ${currentCharacter.name} for their incredible imagination and kind heart.`,
-        image: 'https://images.pexels.com/photos/2781760/pexels-photo-2781760.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        interactions: [
-          {
-            id: 'int1',
-            type: 'click',
-            targetElement: 'star',
-            action: 'animation',
-            content: 'star-twinkle',
-            position: { x: 70, y: 30 }
-          }
-        ]
-      },
-      {
-        id: 2,
-        text: `One magical day, ${currentCharacter.name} discovered something extraordinary. The air sparkled with possibility, and adventure called their name.`,
-        image: 'https://images.pexels.com/photos/1632790/pexels-photo-1632790.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        interactions: [
-          {
-            id: 'int2',
-            type: 'hover',
-            targetElement: 'sparkle',
-            action: 'animation',
-            content: 'sparkle-effect',
-            position: { x: 40, y: 50 }
-          }
-        ]
-      },
-      {
-        id: 3,
-        text: `With courage in their heart, ${currentCharacter.name} stepped into a world of wonder. Every step brought new surprises and magical discoveries.`,
-        image: 'https://images.pexels.com/photos/2437291/pexels-photo-2437291.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        interactions: []
-      },
-      {
-        id: 4,
-        text: `Along the way, ${currentCharacter.name} made new friends who joined their quest. Together, they faced challenges with bravery and wisdom.`,
-        image: 'https://images.pexels.com/photos/3801089/pexels-photo-3801089.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        interactions: []
-      },
-      {
-        id: 5,
-        text: `As the sun began to set, ${currentCharacter.name} realized that the greatest magic of all was the power of friendship and believing in oneself.`,
-        image: 'https://images.pexels.com/photos/747964/pexels-photo-747964.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-        interactions: []
+    try {
+      // Generate story content using Gemini
+      const storyContent = await generateStoryContent(currentCharacter, {
+        theme: prompt.theme || 'adventure',
+        setting: prompt.setting || 'magical forest',
+        additionalDetails: prompt.customPrompt || 
+          (prompt.characters?.length ? `Additional characters: ${prompt.characters.join(', ')}` : '') +
+          (prompt.plotElements?.length ? `\nPlot elements: ${prompt.plotElements.join(', ')}` : '')
+      });
+      
+      // Split the story into pages (approximately 100 words per page)
+      const paragraphs = storyContent.split('\n\n').filter(p => p.trim());
+      const pages: StoryPage[] = [];
+      
+      let currentPageText = '';
+      let pageId = 1;
+      
+      for (const paragraph of paragraphs) {
+        if ((currentPageText + paragraph).split(' ').length > 100) {
+          // Create a new page with the accumulated text
+          pages.push({
+            id: pageId++,
+            text: currentPageText.trim(),
+            image: `https://source.unsplash.com/random/800x600?${prompt.theme || 'adventure'},${prompt.setting || 'magical forest'}&sig=${pageId}`,
+            interactions: []
+          });
+          currentPageText = paragraph;
+        } else {
+          currentPageText += (currentPageText ? '\n\n' : '') + paragraph;
+        }
       }
-    ];
-    
-    set({ currentPages: generatedPages, isGenerating: false });
+      
+      // Add the last page if there's remaining text
+      if (currentPageText.trim()) {
+        pages.push({
+          id: pageId,
+          text: currentPageText.trim(),
+          image: `https://source.unsplash.com/random/800x600?${prompt.theme || 'adventure'},${prompt.setting || 'magical forest'}&sig=${pageId}`,
+          interactions: []
+        });
+      }
+      
+      set({ currentPages: pages, isGenerating: false });
+    } catch (error) {
+      console.error('Error generating custom story:', error);
+      set({ isGenerating: false });
+      throw error;
+    }
   },
   
   saveCustomStory: () => {
