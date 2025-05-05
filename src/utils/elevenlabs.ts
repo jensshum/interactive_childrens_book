@@ -53,3 +53,51 @@ export async function getAvailableVoices(): Promise<any[]> {
     return [];
   }
 }
+
+export async function cloneVoice(name: string, audioBlob: Blob): Promise<string> {
+  try {
+    const formData = new FormData();
+    formData.append('name', name);
+    formData.append('files', audioBlob);
+
+    const response = await fetch('https://api.elevenlabs.io/v1/voices/add', {
+      method: 'POST',
+      headers: {
+        'xi-api-key': import.meta.env.VITE_ELEVENLABS_API_KEY
+      },
+      body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.voice_id;
+  } catch (error) {
+    console.error('Error cloning voice with ElevenLabs:', error);
+    throw error;
+  }
+}
+
+/**
+   * Deletes a cloned voice
+   * @param voiceId The ID of the voice to delete
+   */
+export async function deleteVoice(voiceId: string): Promise<void> {
+  try {
+    const response = await fetch(`https://api.elevenlabs.io/v1/voices/${voiceId}`, {
+      method: 'DELETE',
+      headers: {
+        'xi-api-key': import.meta.env.VITE_ELEVENLABS_API_KEY
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting voice with ElevenLabs:', error);
+    throw error;
+  }
+} 
