@@ -6,9 +6,9 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
-fal.config({
-  credentials: process.env.FAL_API_KEY,
-});
+// fal.config({
+//   credentials: process.env.FAL_API_KEY,
+// });
 
 export async function POST(request: Request) {
   try {

@@ -37,6 +37,8 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
 
   // Generate audio for the current page
   useEffect(() => {
+    let isActive = true; // For handling component unmount
+    
     const generateAudioForPage = async () => {
       if (!currentPage || !isSoundOn) return;
       
@@ -45,21 +47,31 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
         // Clean up previous audio URL if it exists
         if (audioUrl) {
           URL.revokeObjectURL(audioUrl);
+          setAudioUrl(null);
         }
         
         // Generate new audio for the current page using the selected voice
         const newAudioUrl = await generateSpeech(currentPage.text, voiceId);
-        setAudioUrl(newAudioUrl);
         
-        // Play the audio
-        if (audioRef.current) {
-          audioRef.current.src = newAudioUrl;
-          audioRef.current.play();
+        // Check if component is still mounted
+        if (isActive) {
+          setAudioUrl(newAudioUrl);
+          
+          // Play the audio
+          if (audioRef.current) {
+            audioRef.current.src = newAudioUrl;
+            audioRef.current.play();
+          }
+        } else {
+          // Clean up if component unmounted during fetch
+          URL.revokeObjectURL(newAudioUrl);
         }
       } catch (error) {
         console.error('Error generating audio:', error);
       } finally {
-        setIsLoadingAudio(false);
+        if (isActive) {
+          setIsLoadingAudio(false);
+        }
       }
     };
     
@@ -67,6 +79,7 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
     
     // Cleanup function
     return () => {
+      isActive = false;
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
       }
@@ -78,7 +91,10 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
     setIsSoundOn(!isSoundOn);
     if (audioRef.current) {
       if (!isSoundOn) {
-        audioRef.current.play();
+        // If turning sound on and we have an audio URL, play it
+        if (audioUrl) {
+          audioRef.current.play();
+        }
       } else {
         audioRef.current.pause();
       }
