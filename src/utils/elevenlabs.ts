@@ -16,7 +16,7 @@ export async function generateSpeech(text: string, voiceId?: string): Promise<st
       headers: {
         'Accept': 'audio/mpeg',
         'Content-Type': 'application/json',
-        'xi-api-key': import.meta.env.VITE_ELEVENLABS_API_KEY
+        'xi-api-key': process.env.VITE_ELEVENLABS_API_KEY
       },
       body: JSON.stringify({
         text,

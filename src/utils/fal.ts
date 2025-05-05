@@ -1,12 +1,8 @@
 import { fal } from "@fal-ai/client";
 import { generateStoryContent, generateImageDescription } from './chatgpt';
 
-// Initialize the Gemini API client for text generation
-
-
-// Initialize fal.ai client
 fal.config({
-  credentials: import.meta.env.VITE_FAL_API_KEY,
+  credentials: import.meta.env.VITE_OPENAI_API_KEY,
 });
 
 export { generateStoryContent, generateImageDescription };
