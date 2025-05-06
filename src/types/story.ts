@@ -29,6 +29,7 @@ export interface StoryCharacter {
   gender: 'boy' | 'girl' | 'neutral';
   age?: number;
   photo?: string;
+  styledImage?: string;
   artStyle?: 'watercolor' | 'cartoon' | 'pixar' | 'anime' | 'storybook';
 }
 

@@ -28,7 +28,7 @@ export const useStoryStore = create<StoryState>((set, get) => ({
   currentCharacter: null,
   currentPages: [],
   isGenerating: false,
-  debugMode: false,
+  debugMode: true,
   
   selectStory: (storyId: string) => {
     const story = get().presetStories.find(s => s.id === storyId) || {
@@ -91,7 +91,10 @@ export const useStoryStore = create<StoryState>((set, get) => ({
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-              character: currentCharacter,
+              character: {
+                ...currentCharacter,
+                photo: currentCharacter.styledImage || currentCharacter.photo // Use styled image if available
+              },
               scene: currentPageText,
               pageNumber: pageId,
               debugMode
@@ -103,6 +106,8 @@ export const useStoryStore = create<StoryState>((set, get) => ({
           }
           
           const { imageUrl, videoUrl } = await imageResponse.json();
+          
+          console.log(`Generated page ${pageId} image using ${currentCharacter.styledImage ? 'styled' : 'original'} character image`);
           
           // Create a new page with the accumulated text
           pages.push({
@@ -124,7 +129,10 @@ export const useStoryStore = create<StoryState>((set, get) => ({
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            character: currentCharacter,
+            character: {
+              ...currentCharacter,
+              photo: currentCharacter.styledImage || currentCharacter.photo // Use styled image if available
+            },
             scene: currentPageText,
             pageNumber: pageId,
             debugMode
@@ -213,6 +221,8 @@ export const useStoryStore = create<StoryState>((set, get) => ({
           }
           
           const { imageUrl, videoUrl } = await imageResponse.json();
+          
+          console.log(`Generated page ${pageId} image using ${currentCharacter.styledImage ? 'styled' : 'original'} character image`);
           
           // Create a new page with the accumulated text
           pages.push({

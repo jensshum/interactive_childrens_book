@@ -8,7 +8,7 @@
  */
 export async function generateSpeech(text: string, voiceId?: string): Promise<string> {
   try {
-    const response = await fetch('/api/text-to-speech', {
+    const response = await fetch('/api/voice/text-to-speech', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -51,8 +51,9 @@ export async function getAvailableVoices(): Promise<any[]> {
     try {
       const data = JSON.parse(text); // Attempt to parse as JSON
       return data.voices || [];
-    } catch (jsonError) {
-      throw new Error(`Failed to parse JSON: ${jsonError.message}\nRaw response: ${text}`);
+    } catch (jsonError: unknown) {
+      const error = jsonError as Error;
+      throw new Error(`Failed to parse JSON: ${error.message}\nRaw response: ${text}`);
     }
   } catch (error) {
     console.error('Error fetching voices:', error); // Log full error

@@ -44,10 +44,10 @@ export async function POST(request: Request) {
 
     let imageUrl: string;
     
-    if (character.photo) {
+    if (character.photo || character.styledImage) {
       const imageResult = await fal.subscribe("fal-ai/flux/dev/image-to-image", {
         input: {
-          image_url: character.photo,
+          image_url: character.styledImage || character.photo,
           prompt: imagePrompt,
           num_inference_steps: 30,
           guidance_scale: 7.5,
