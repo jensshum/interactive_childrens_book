@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Share2, Loader2 } from 'lucide-react';
+import { ArrowLeft, BookOpen, Share2, Loader2, Bug } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStoryStore } from '../store/useStoryStore';
@@ -11,7 +11,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function StoryReadingPage() {
   const { storyId } = useParams<{ storyId: string }>();
   const navigate = useNavigate();
-  const { customStories, selectedStory, currentCharacter, currentPages } = useStoryStore();
+  const { customStories, selectedStory, currentCharacter, currentPages, debugMode, setDebugMode } = useStoryStore();
   const { user } = useAuth();
   
   const [story, setStory] = useState<any>(null);
@@ -108,6 +108,15 @@ export default function StoryReadingPage() {
           </div>
           
           <div className="flex items-center space-x-2">
+            <button
+              onClick={() => setDebugMode(!debugMode)}
+              className={`p-2 rounded-full transition-colors ${
+                debugMode ? 'bg-yellow-100 text-yellow-600' : 'hover:bg-gray-100 text-gray-600'
+              }`}
+              title={debugMode ? 'Disable debug mode' : 'Enable debug mode'}
+            >
+              <Bug size={20} />
+            </button>
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <Share2 size={20} className="text-gray-600" />
             </button>

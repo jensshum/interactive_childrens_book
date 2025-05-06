@@ -1,8 +1,9 @@
 import { FormEvent, useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { Wand2, Sparkles, Mountain, Users, Map, Mic, MicOff, Loader2, Square } from 'lucide-react';
+import { Wand2, Sparkles, Mountain, Users, Map, Mic, MicOff, Loader2, Square, Bug } from 'lucide-react';
 import { StoryPrompt } from '../../types/story';
 import { getAvailableVoices, cloneVoice, deleteVoice } from '../../utils/elevenlabs';
+import { useStoryStore } from '../../store/useStoryStore';
 
 interface StoryPromptFormProps {
   onSubmit: (prompt: StoryPrompt) => void;
@@ -16,6 +17,7 @@ interface Voice {
 }
 
 export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPromptFormProps) {
+  const { debugMode, setDebugMode } = useStoryStore();
   const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   const [prompt, setPrompt] = useState<StoryPrompt>({
     theme: '',
@@ -175,16 +177,32 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
       transition={{ duration: 0.5 }}
       className="bg-white rounded-xl p-6 md:p-8 shadow-storybook w-full max-w-2xl mx-auto"
     >
-      <div className="flex items-center space-x-3 mb-6">
-        <div className="bg-secondary-100 p-2 rounded-full">
-          <Wand2 className="h-6 w-6 text-secondary-500" />
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center space-x-3">
+          <div className="bg-secondary-100 p-2 rounded-full">
+            <Wand2 className="h-6 w-6 text-secondary-500" />
+          </div>
+          <h2 className="font-display text-xl font-bold text-gray-800">Create Your Story</h2>
         </div>
-        <h2 className="font-display text-xl font-bold text-gray-800">Create Your Story</h2>
+        
+        <button
+          onClick={() => setDebugMode(!debugMode)}
+          className={`p-2 rounded-full transition-colors ${
+            debugMode ? 'bg-yellow-100 text-yellow-600' : 'hover:bg-gray-100 text-gray-600'
+          }`}
+          title={debugMode ? 'Disable debug mode (videos will be generated)' : 'Enable debug mode (no videos will be generated)'}
+        >
+          <Bug size={20} />
+        </button>
       </div>
 
       <div className="mb-6 p-4 bg-primary-50 rounded-lg text-primary-700 text-sm">
         <p className="font-medium mb-1">✨ AI-Powered Story Creation</p>
-        <p>We'll generate an animated video for each page of your story using advanced AI technology. The videos will bring your story to life with movement and visual effects!</p>
+        <p>
+          {debugMode 
+            ? "Debug mode is enabled. Only static images will be generated."
+            : "We'll generate an animated video for each page of your story using advanced AI technology. The videos will bring your story to life with movement and visual effects!"}
+        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">

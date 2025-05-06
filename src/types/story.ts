@@ -10,7 +10,8 @@ export interface Story {
 export interface StoryPage {
   id: number;
   text: string;
-  image: string; // This can be an image URL or a video URL
+  image: string;
+  video?: string | null;
   interactions?: Interaction[];
 }
 
