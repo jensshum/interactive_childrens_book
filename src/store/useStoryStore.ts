@@ -54,6 +54,24 @@ export const useStoryStore = create<StoryState>((set, get) => ({
     set({ isGenerating: true });
     
     try {
+      // First, generate the character image
+      const characterImageResponse = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character: currentCharacter,
+          scene: 'Generate a character portrait',
+          pageNumber: 0,
+          isCharacterImage: true
+        })
+      });
+      
+      if (!characterImageResponse.ok) {
+        throw new Error('Failed to generate character image');
+      }
+      
+      const { imageUrl: characterImageUrl } = await characterImageResponse.json();
+      
       // Call the story generation API
       const storyResponse = await fetch('/api/story', {
         method: 'POST',
@@ -75,7 +93,7 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       const { content } = await storyResponse.json();
       
       // Split the story into pages (approximately 100 words per page)
-      const paragraphs = content.split('\n\n').filter(p => p.trim());
+      const paragraphs = content.split('\n\n').filter((p: string) => p.trim());
       const pages: StoryPage[] = [];
       
       let currentPageText = '';
@@ -83,28 +101,30 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       for (const paragraph of paragraphs) {
         if ((currentPageText + paragraph).split(' ').length > 100) {
-          // Generate image for the current page
-          const imageResponse = await fetch('/api/image', {
+          // Generate video for the current page using the character image
+          const videoResponse = await fetch('/api/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               character: currentCharacter,
               scene: currentPageText,
-              pageNumber: pageId
+              pageNumber: pageId,
+              characterImageUrl,
+              isCharacterImage: false
             })
           });
           
-          if (!imageResponse.ok) {
-            throw new Error('Failed to generate image');
+          if (!videoResponse.ok) {
+            throw new Error('Failed to generate video');
           }
           
-          const { imageUrl, videoUrl } = await imageResponse.json();
+          const { videoUrl } = await videoResponse.json();
           
           // Create a new page with the accumulated text
           pages.push({
             id: pageId++,
             text: currentPageText.trim(),
-            image: imageUrl,
+            image: characterImageUrl,
             video: videoUrl,
             interactions: []
           });
@@ -116,26 +136,28 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       // Add the last page if there's remaining text
       if (currentPageText.trim()) {
-        const imageResponse = await fetch('/api/image', {
+        const videoResponse = await fetch('/api/image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             character: currentCharacter,
             scene: currentPageText,
-            pageNumber: pageId
+            pageNumber: pageId,
+            characterImageUrl,
+            isCharacterImage: false
           })
         });
         
-        if (!imageResponse.ok) {
-          throw new Error('Failed to generate image');
+        if (!videoResponse.ok) {
+          throw new Error('Failed to generate video');
         }
         
-        const { imageUrl, videoUrl } = await imageResponse.json();
+        const { videoUrl } = await videoResponse.json();
         
         pages.push({
           id: pageId,
           text: currentPageText.trim(),
-          image: imageUrl,
+          image: characterImageUrl,
           video: videoUrl,
           interactions: []
         });
@@ -160,6 +182,24 @@ export const useStoryStore = create<StoryState>((set, get) => ({
     set({ isGenerating: true });
     
     try {
+      // First, generate the character image
+      const characterImageResponse = await fetch('/api/image', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          character: currentCharacter,
+          scene: 'Generate a character portrait',
+          pageNumber: 0,
+          isCharacterImage: true
+        })
+      });
+      
+      if (!characterImageResponse.ok) {
+        throw new Error('Failed to generate character image');
+      }
+      
+      const { imageUrl: characterImageUrl } = await characterImageResponse.json();
+      
       // Call the story generation API
       const storyResponse = await fetch('/api/story', {
         method: 'POST',
@@ -183,7 +223,7 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       const { content } = await storyResponse.json();
       
       // Split the story into pages (approximately 100 words per page)
-      const paragraphs = content.split('\n\n').filter(p => p.trim());
+      const paragraphs = content.split('\n\n').filter((p: string) => p.trim());
       const pages: StoryPage[] = [];
       
       let currentPageText = '';
@@ -191,28 +231,30 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       for (const paragraph of paragraphs) {
         if ((currentPageText + paragraph).split(' ').length > 100) {
-          // Generate image for the current page
-          const imageResponse = await fetch('/api/image', {
+          // Generate video for the current page using the character image
+          const videoResponse = await fetch('/api/image', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               character: currentCharacter,
               scene: currentPageText,
-              pageNumber: pageId
+              pageNumber: pageId,
+              characterImageUrl,
+              isCharacterImage: false
             })
           });
           
-          if (!imageResponse.ok) {
-            throw new Error('Failed to generate image');
+          if (!videoResponse.ok) {
+            throw new Error('Failed to generate video');
           }
           
-          const { imageUrl, videoUrl } = await imageResponse.json();
+          const { videoUrl } = await videoResponse.json();
           
           // Create a new page with the accumulated text
           pages.push({
             id: pageId++,
             text: currentPageText.trim(),
-            image: imageUrl,
+            image: characterImageUrl,
             video: videoUrl,
             interactions: []
           });
@@ -224,26 +266,28 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       
       // Add the last page if there's remaining text
       if (currentPageText.trim()) {
-        const imageResponse = await fetch('/api/image', {
+        const videoResponse = await fetch('/api/image', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             character: currentCharacter,
             scene: currentPageText,
-            pageNumber: pageId
+            pageNumber: pageId,
+            characterImageUrl,
+            isCharacterImage: false
           })
         });
         
-        if (!imageResponse.ok) {
-          throw new Error('Failed to generate image');
+        if (!videoResponse.ok) {
+          throw new Error('Failed to generate video');
         }
         
-        const { imageUrl, videoUrl } = await imageResponse.json();
+        const { videoUrl } = await videoResponse.json();
         
         pages.push({
           id: pageId,
           text: currentPageText.trim(),
-          image: imageUrl,
+          image: characterImageUrl,
           video: videoUrl,
           interactions: []
         });
