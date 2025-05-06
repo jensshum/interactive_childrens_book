@@ -28,14 +28,13 @@ export async function generateSpeech(text: string, voiceId?: string): Promise<st
     throw error;
   }
 }
-
 /**
  * Gets a list of available voices from ElevenLabs
  * @returns An array of voice objects
  */
 export async function getAvailableVoices(): Promise<any[]> {
   try {
-    const response = await fetch('/api/voices', {
+    const response = await fetch('/api/voice/voices', {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json'
@@ -43,13 +42,20 @@ export async function getAvailableVoices(): Promise<any[]> {
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status} ${response.statusText}`);
+      const errorText = await response.text(); // Get raw response text
+      throw new Error(`API error: ${response.status} ${response.statusText}\nResponse body: ${errorText}`);
     }
 
-    const data = await response.json();
-    return data.voices || [];
+    const text = await response.text(); // Get raw response text first
+    // console.log('Raw response:', text); // Log raw response for debugging
+    try {
+      const data = JSON.parse(text); // Attempt to parse as JSON
+      return data.voices || [];
+    } catch (jsonError) {
+      throw new Error(`Failed to parse JSON: ${jsonError.message}\nRaw response: ${text}`);
+    }
   } catch (error) {
-    console.error('Error fetching voices:', error);
+    console.error('Error fetching voices:', error); // Log full error
     return [];
   }
 }

@@ -7,7 +7,7 @@ export async function GET() {
       method: 'GET',
       headers: {
         'Accept': 'application/json',
-        'xi-api-key': process.env.ELEVENLABS_API_KEY
+        'xi-api-key': "sk_78f86c0b6b616a5d891eb5234218f959ec8a401a3703dddf"
       }
     });
 
