@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState } from 'react';
-import { supabase } from '../utils/supabase';
 import { User } from '@supabase/supabase-js';
+import { supabase } from '../utils/supabase'; // Import Supabase client
 
 interface AuthContextType {
   user: User | null;
@@ -16,14 +16,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
+
   useEffect(() => {
-    // Check active sessions and sets the user
+    // Check active session with Supabase
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    // Listen for changes on auth state (sign in, sign out, etc.)
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       setLoading(false);
@@ -33,24 +34,69 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'signIn',
+        email,
+        password,
+      }),
     });
-    if (error) throw error;
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      console.error('Sign in error:', { error, email, status: response.status });
+      throw new Error(error || 'Failed to sign in');
+    }
+
+    const { user } = await response.json();
+    setUser(user);
   };
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'signUp',
+        email,
+        password,
+      }),
     });
-    if (error) throw error;
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      console.error('Sign up error:', { error, email, status: response.status });
+      throw new Error(error || 'Failed to sign up');
+    }
+
+    const { user } = await response.json();
+    setUser(user);
   };
 
   const signOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    const response = await fetch('/api/auth', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        action: 'signOut',
+      }),
+    });
+
+    if (!response.ok) {
+      const { error } = await response.json();
+      console.error('Sign out error:', { error, status: response.status });
+      throw new Error(error || 'Failed to sign out');
+    }
+
+    setUser(null);
   };
 
   const value = {
@@ -74,4 +120,4 @@ export function useAuth() {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}

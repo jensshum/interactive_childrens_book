@@ -112,6 +112,7 @@ export default function MyStoriesPage() {
                   <div className="flex justify-between items-center">
                     <Link
                       to={`/read/${story.storyId}`}
+                      onClick={() => console.log('Reading story with ID:', story.storyId)}
                       className="text-primary-500 hover:text-primary-600 font-medium"
                     >
                       Read Story

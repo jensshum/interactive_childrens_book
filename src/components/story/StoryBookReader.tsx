@@ -199,9 +199,18 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
                   <ArrowLeft size={24} className="text-gray-600" />
                 </button>
                 
-                <span className="text-gray-600">
-                  Page {currentPageIndex + 1} of {totalPages}
-                </span>
+                <div className="flex items-center space-x-4">
+                  <button
+                    onClick={toggleSound}
+                    className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+                    title={isSoundOn ? 'Turn sound off' : 'Turn sound on'}
+                  >
+                    {isSoundOn ? <Volume2 size={24} className="text-gray-600" /> : <VolumeX size={24} className="text-gray-600" />}
+                  </button>
+                  <span className="text-gray-600">
+                    Page {currentPageIndex + 1} of {totalPages}
+                  </span>
+                </div>
                 
                 <button
                   onClick={goToNextPage}

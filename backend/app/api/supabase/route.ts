@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
 
 if (!supabaseUrl || !supabaseAnonKey) {
   throw new Error('Missing Supabase environment variables');
@@ -12,20 +12,12 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
 export async function POST(request: Request) {
   try {
-    const { story, userId } = await request.json();
+    const { story } = await request.json();
+    console.log(story);
 
     const { data, error } = await supabase
       .from('stories')
-      .insert([
-        {
-          user_id: userId,
-          story_id: story.storyId,
-          character: story.character,
-          pages: story.pages,
-          date_created: story.dateCreated,
-          title: story.title || 'Untitled Story'
-        }
-      ])
+      .insert([story])
       .select();
 
     if (error) throw error;

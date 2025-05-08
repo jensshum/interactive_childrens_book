@@ -14,7 +14,8 @@ const artStyles = [
   { id: 'cartoon', name: 'Cartoon', description: 'Fun and playful cartoon style' },
   { id: 'pixar', name: 'Pixar-like', description: '3D animated style' },
   { id: 'anime', name: 'Anime', description: 'Japanese animation style' },
-  { id: 'storybook', name: 'Storybook', description: 'Classic children\'s book illustration' }
+  { id: 'storybook', name: 'Storybook', description: 'Classic children\'s book illustration' },
+  { id: 'ghibli', name: 'Studio Ghibli', description: 'Studio Ghibli style ' },
 ] as const;
 
 export default function CharacterForm({ onSubmit, isLoading = false }: CharacterFormProps) {
@@ -45,7 +46,7 @@ export default function CharacterForm({ onSubmit, isLoading = false }: Character
           The character should be friendly, approachable, and suitable for a children's book. 
           The image should be a portrait-style illustration.`,
           pageNumber: 0, // Special page number to indicate this is a character styling request
-          debugMode: false
+          debugMode: true
         }),
       });
 

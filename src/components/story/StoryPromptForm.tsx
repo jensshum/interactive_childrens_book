@@ -19,6 +19,11 @@ interface Voice {
 export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPromptFormProps) {
   const { debugMode, setDebugMode } = useStoryStore();
   const [useCustomPrompt, setUseCustomPrompt] = useState(false);
+  
+  // Store raw input strings separately from processed arrays
+  const [charactersInput, setCharactersInput] = useState('');
+  const [plotElementsInput, setPlotElementsInput] = useState('');
+  
   const [prompt, setPrompt] = useState<StoryPrompt>({
     theme: '',
     setting: '',
@@ -27,6 +32,7 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
     customPrompt: '',
     voiceId: undefined
   });
+
   const [voices, setVoices] = useState<Voice[]>([]);
   const [isLoadingVoices, setIsLoadingVoices] = useState(false);
   const [isCloningVoice, setIsCloningVoice] = useState(false);
@@ -44,6 +50,16 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
 
   useEffect(() => {
     loadVoices();
+    
+    // Initialize input fields from any existing prompt data
+    if (prompt.characters.length > 0) {
+      setCharactersInput(prompt.characters.join(', '));
+    }
+    
+    if (prompt.plotElements.length > 0) {
+      setPlotElementsInput(prompt.plotElements.join(', '));
+    }
+    
     return () => {
       // Cleanup recording resources
       if (mediaRecorderRef.current?.state === 'recording') {
@@ -156,7 +172,26 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit(prompt);
+    
+    // Process raw input strings into arrays only when submitting
+    const processedCharacters = charactersInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+      
+    const processedPlotElements = plotElementsInput
+      .split(',')
+      .map(s => s.trim())
+      .filter(s => s.length > 0);
+    
+    // Create the final prompt with processed arrays
+    const finalPrompt = {
+      ...prompt,
+      characters: processedCharacters,
+      plotElements: processedPlotElements
+    };
+    
+    onSubmit(finalPrompt);
   };
 
   const themes = [
@@ -184,25 +219,6 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
           </div>
           <h2 className="font-display text-xl font-bold text-gray-800">Create Your Story</h2>
         </div>
-        
-        <button
-          onClick={() => setDebugMode(!debugMode)}
-          className={`p-2 rounded-full transition-colors ${
-            debugMode ? 'bg-yellow-100 text-yellow-600' : 'hover:bg-gray-100 text-gray-600'
-          }`}
-          title={debugMode ? 'Disable debug mode (videos will be generated)' : 'Enable debug mode (no videos will be generated)'}
-        >
-          <Bug size={20} />
-        </button>
-      </div>
-
-      <div className="mb-6 p-4 bg-primary-50 rounded-lg text-primary-700 text-sm">
-        <p className="font-medium mb-1">✨ AI-Powered Story Creation</p>
-        <p>
-          {debugMode 
-            ? "Debug mode is enabled. Only static images will be generated."
-            : "We'll generate an animated video for each page of your story using advanced AI technology. The videos will bring your story to life with movement and visual effects!"}
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -446,11 +462,8 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
               <input
                 type="text"
                 placeholder="e.g., friendly dragon, wise owl (comma separated)"
-                value={prompt.characters?.join(', ') || ''}
-                onChange={(e) => setPrompt({
-                  ...prompt,
-                  characters: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                })}
+                value={charactersInput}
+                onChange={(e) => setCharactersInput(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
             </div>
@@ -465,11 +478,8 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
               <input
                 type="text"
                 placeholder="e.g., magical map, hidden treasure (comma separated)"
-                value={prompt.plotElements?.join(', ') || ''}
-                onChange={(e) => setPrompt({
-                  ...prompt,
-                  plotElements: e.target.value.split(',').map(s => s.trim()).filter(Boolean)
-                })}
+                value={plotElementsInput}
+                onChange={(e) => setPlotElementsInput(e.target.value)}
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
               />
             </div>
@@ -496,7 +506,7 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
         >
           {isLoading ? (
             <>
-              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-pulse -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>

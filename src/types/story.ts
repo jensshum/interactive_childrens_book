@@ -48,4 +48,5 @@ export interface CustomizedStory {
   pages: StoryPage[];
   dateCreated: Date;
   prompt?: StoryPrompt;
+  title?: string;
 }
