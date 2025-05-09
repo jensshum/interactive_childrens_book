@@ -6,8 +6,9 @@ export async function POST(request: Request) {
     const { text, voiceId } = await request.json();
     
     // Default to a friendly narrator voice if none provided
-    const selectedVoiceId = voiceId || 'dpDWK7eq1QGTvUfhUToW'; // Default friendly narrator voice
-    
+    console.log("VOICE ID", voiceId);
+    const selectedVoiceId = voiceId || '3ohAIwy1jvcwdtwYjVUU'; // Default friendly narrator voice
+    console.log("SELECTED VOICE ID", selectedVoiceId);
     const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
       method: 'POST',
       headers: new Headers({

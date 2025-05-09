@@ -53,6 +53,7 @@ export default function StoryBookReader({ pages, characterName, voiceId }: Story
         }
         
         // Generate new audio for the current page using the selected voice
+        console.log("VOICEY ID", voiceId);
         const newAudioUrl = await generateSpeech(currentPage.text, voiceId);
         
         // Check if component is still mounted

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, BookOpen, Share2, Loader2, Bug } from 'lucide-react';
+import { ArrowLeft, Share2, Bug } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useStoryStore } from '../store/useStoryStore';
@@ -17,7 +17,6 @@ export default function StoryReadingPage() {
   
   const [story, setStory] = useState<CustomizedStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   
   useEffect(() => {
@@ -30,7 +29,11 @@ export default function StoryReadingPage() {
           title: selectedStory?.title || 'Your Story',
           character: currentCharacter,
           pages: currentPages,
-          dateCreated: new Date()
+          dateCreated: new Date(),
+          prompt: {
+            ...selectedStory?.prompt,
+            voiceId: selectedStory?.prompt?.voiceId
+          }
         });
         setIsLoading(false);
       } else if (storyId && storyId !== 'latest' && user) {
@@ -51,7 +54,10 @@ export default function StoryReadingPage() {
               character: foundStory.character,
               pages: foundStory.pages,
               dateCreated: new Date(foundStory.date_created),
-              prompt: foundStory.prompt
+              prompt: {
+                ...foundStory.prompt,
+                voiceId: foundStory.voice_id
+              }
             });
           } else {
             console.log('No story found with ID:', storyId);
@@ -71,55 +77,6 @@ export default function StoryReadingPage() {
 
     loadStory();
   }, [storyId, customStories, currentPages, currentCharacter, selectedStory, navigate, user]);
-  
-  const handleSaveStory = async () => {
-    if (!user) {
-      setSaveError('Please sign in to save your story');
-      return;
-    }
-
-    if (!story) {
-      setSaveError('No story to save');
-      return;
-    }
-
-    try {
-      setIsSaving(true);
-      setSaveError(null);
-
-      const storyToSave = {
-        user_id: user.id,
-        story_id: storyId || `custom-${Date.now()}`,
-        title: story.title || 'Untitled Story',
-        character: story.character,
-        pages: story.pages,
-        date_created: new Date().toISOString()
-      };
-
-      const response = await fetch('/api/supabase', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          story: storyToSave
-        }),
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        throw new Error(data.error || 'Failed to save story');
-      }
-
-      // Show success message or redirect
-      navigate('/my-stories');
-    } catch (error) {
-      console.error('Error saving story:', error);
-      setSaveError('Failed to save story. Please try again.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
   
   if (isLoading) {
     return (
@@ -169,23 +126,6 @@ export default function StoryReadingPage() {
             </button>
             <button className="p-2 rounded-full hover:bg-gray-100 transition-colors">
               <Share2 size={20} className="text-gray-600" />
-            </button>
-            <button 
-              onClick={handleSaveStory}
-              disabled={isSaving}
-              className="bg-primary-500 hover:bg-primary-600 text-white px-4 py-2 rounded-lg transition-colors flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isSaving ? (
-                <>
-                  <Loader2 size={18} className="mr-2 animate-spin" />
-                  <span className="hidden md:inline">Saving...</span>
-                </>
-              ) : (
-                <>
-                  <BookOpen size={18} className="mr-2" />
-                  <span className="hidden md:inline">Save Story</span>
-                </>
-              )}
             </button>
           </div>
         </div>

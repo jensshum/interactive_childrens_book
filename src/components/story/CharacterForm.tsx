@@ -34,19 +34,14 @@ export default function CharacterForm({ onSubmit, isLoading = false }: Character
     setIsGeneratingImage(true);
 
     try {
-      // Generate styled character image
-      const response = await fetch('/api/image', {
+      // Generate styled character image using the dedicated endpoint
+      const response = await fetch('/api/character-style', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          character: character,
-          scene: `A ${character.age}-year-old ${character.gender} character in ${getStylePrompt(character.artStyle)}. 
-          The character should be friendly, approachable, and suitable for a children's book. 
-          The image should be a portrait-style illustration.`,
-          pageNumber: 0, // Special page number to indicate this is a character styling request
-          debugMode: true
+          character: character
         }),
       });
 

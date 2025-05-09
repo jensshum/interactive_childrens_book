@@ -5,6 +5,7 @@ export interface Story {
   coverImage: string;
   ageRange: string;
   isPreset: boolean;
+  prompt?: StoryPrompt;
 }
 
 export interface StoryPage {
@@ -30,7 +31,7 @@ export interface StoryCharacter {
   age?: number;
   photo?: string;
   styledImage?: string;
-  artStyle?: 'watercolor' | 'cartoon' | 'pixar' | 'anime' | 'storybook';
+  artStyle?: 'watercolor' | 'cartoon' | 'pixar' | 'anime' | 'storybook' | 'ghibli';
 }
 
 export interface StoryPrompt {

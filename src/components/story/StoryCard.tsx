@@ -1,7 +1,8 @@
 import { motion } from 'framer-motion';
 import { BookOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Story } from '../../types/story';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface StoryCardProps {
   story: Story;
@@ -9,6 +10,18 @@ interface StoryCardProps {
 }
 
 export default function StoryCard({ story, onClick }: StoryCardProps) {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  const handleStorySelect = (e: React.MouseEvent) => {
+    if (!user) {
+      e.preventDefault();
+      navigate('/sign-in');
+      return;
+    }
+    onClick?.();
+  };
+
   return (
     <motion.div
       whileHover={{ y: -8, scale: 1.02 }}
@@ -33,7 +46,7 @@ export default function StoryCard({ story, onClick }: StoryCardProps) {
         <Link 
           to={`/customize?story=${story.id}`} 
           className="flex items-center justify-center space-x-2 bg-secondary-500 hover:bg-secondary-600 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-center font-medium mt-auto"
-          onClick={onClick}
+          onClick={handleStorySelect}
         >
           <BookOpen size={18} />
           <span>Select Story</span>

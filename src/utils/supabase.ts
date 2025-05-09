@@ -16,7 +16,7 @@ export const API_BASE_URL = '/api/supabase';
 export async function saveStoryToSupabase(story: CustomizedStory, userId: string) {
   try {
     // Generate a unique story ID if one doesn't exist
-    const storyId =  uuidv4() ;
+    const storyId = story.storyId === 'latest' ? uuidv4() : story.storyId;
     
     const response = await fetch(API_BASE_URL, {
       method: 'POST',
@@ -24,12 +24,14 @@ export async function saveStoryToSupabase(story: CustomizedStory, userId: string
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ story: {
+        id: uuidv4(),
         user_id: userId,
         story_id: storyId,
         character: story.character,
         pages: story.pages,
         date_created: story.dateCreated,
-        title: story.title || 'Untitled Story'
+        title: story.title || 'Untitled Story',
+        voice_id: story.prompt?.voiceId
       }}),
     });
 

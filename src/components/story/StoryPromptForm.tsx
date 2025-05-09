@@ -17,7 +17,7 @@ interface Voice {
 }
 
 export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPromptFormProps) {
-  const { debugMode, setDebugMode } = useStoryStore();
+  const { debugMode, setDebugMode, currentCharacter } = useStoryStore();
   const [useCustomPrompt, setUseCustomPrompt] = useState(false);
   
   // Store raw input strings separately from processed arrays
@@ -52,11 +52,11 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
     loadVoices();
     
     // Initialize input fields from any existing prompt data
-    if (prompt.characters.length > 0) {
+    if (prompt.characters && prompt.characters.length > 0) {
       setCharactersInput(prompt.characters.join(', '));
     }
     
-    if (prompt.plotElements.length > 0) {
+    if (prompt.plotElements && prompt.plotElements.length > 0) {
       setPlotElementsInput(prompt.plotElements.join(', '));
     }
     
@@ -184,13 +184,15 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
       .map(s => s.trim())
       .filter(s => s.length > 0);
     
-    // Create the final prompt with processed arrays
+    // Create the final prompt with processed arrays and ensure voiceId is included
     const finalPrompt = {
       ...prompt,
       characters: processedCharacters,
-      plotElements: processedPlotElements
+      plotElements: processedPlotElements,
+      voiceId: prompt.voiceId // Explicitly include voiceId
     };
     
+    console.log('Submitting prompt with voiceId:', finalPrompt.voiceId); // Debug log
     onSubmit(finalPrompt);
   };
 
@@ -221,6 +223,30 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
         </div>
       </div>
 
+      {/* Character Preview Section */}
+      {currentCharacter && (
+        <div className="mb-8 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-4">
+            <div className="relative w-24 h-24 rounded-lg overflow-hidden">
+              <img
+                src={currentCharacter.styledImage || currentCharacter.photo}
+                alt={currentCharacter.name}
+                className="w-full h-full object-cover"
+              />
+            </div>
+            <div>
+              <h3 className="font-display font-bold text-lg text-gray-800">{currentCharacter.name}</h3>
+              <p className="text-sm text-gray-600">
+                {currentCharacter.age} years old • {currentCharacter.gender}
+              </p>
+              <p className="text-sm text-gray-500 mt-1">
+                Art Style: {currentCharacter.artStyle ? currentCharacter.artStyle.charAt(0).toUpperCase() + currentCharacter.artStyle.slice(1) : 'Default'}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Voice Selection Section */}
         <div className="border-t border-gray-200 pt-6">
@@ -249,7 +275,7 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
                     <div className="flex items-center justify-between">
                       <button
                         type="button"
-                        onClick={() => setPrompt({ ...prompt, voiceId: voice.voice_id })}
+                        onClick={() => {console.log("VOICE!!!", voice.voice_id); setPrompt({ ...prompt, voiceId: voice.voice_id })}}
                         className="flex-1 text-left"
                       >
                         <div className="font-medium text-gray-900">{voice.name}</div>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { Story, StoryCharacter, CustomizedStory, StoryPage, StoryPrompt } from '../types/story';
 import { presetStories } from '../data/presetStories';
+import { v4 as uuidv4 } from 'uuid';
 
 interface StoryState {
   presetStories: Story[];
@@ -10,13 +11,14 @@ interface StoryState {
   currentPages: StoryPage[];
   isGenerating: boolean;
   debugMode: boolean;
+  saveError: string | null;
   
   // Actions
   selectStory: (storyId: string) => void;
   setCharacter: (character: StoryCharacter) => void;
   generateStory: () => Promise<void>;
   generateCustomStory: (prompt: StoryPrompt) => Promise<void>;
-  saveCustomStory: () => void;
+  saveCustomStory: (userId: string) => Promise<void>;
   getStoryById: (storyId: string) => CustomizedStory | null;
   setDebugMode: (enabled: boolean) => void;
 }
@@ -29,6 +31,7 @@ export const useStoryStore = create<StoryState>((set, get) => ({
   currentPages: [],
   isGenerating: false,
   debugMode: true,
+  saveError: null,
   
   selectStory: (storyId: string) => {
     const story = get().presetStories.find(s => s.id === storyId) || {
@@ -37,7 +40,8 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       description: 'Create your own unique adventure with AI-powered storytelling.',
       coverImage: 'https://images.pexels.com/photos/3278215/pexels-photo-3278215.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
       ageRange: '4-10',
-      isPreset: false
+      isPreset: false,
+      prompt: {} // Initialize empty prompt object
     };
     set({ selectedStory: story });
   },
@@ -157,8 +161,9 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       set({ currentPages: pages, isGenerating: false });
     } catch (error) {
       console.error('Error generating story:', error);
+      set({ saveError: 'Failed to generate story. Please try again.' });
+    } finally {
       set({ isGenerating: false });
-      throw error;
     }
   },
   
@@ -173,6 +178,17 @@ export const useStoryStore = create<StoryState>((set, get) => ({
     set({ isGenerating: true });
     
     try {
+      // Update selectedStory with the prompt including voiceId
+      set(state => ({
+        selectedStory: state.selectedStory ? {
+          ...state.selectedStory,
+          prompt: {
+            ...state.selectedStory.prompt,
+            voiceId: prompt.voiceId
+          }
+        } : null
+      }));
+
       // Call the story generation API
       const storyResponse = await fetch('/api/story', {
         method: 'POST',
@@ -269,29 +285,53 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       set({ currentPages: pages, isGenerating: false });
     } catch (error) {
       console.error('Error generating custom story:', error);
+      set({ saveError: 'Failed to generate story. Please try again.' });
+    } finally {
       set({ isGenerating: false });
-      throw error;
     }
   },
   
-  saveCustomStory: () => {
-    const { selectedStory, currentCharacter, currentPages } = get();
-    
-    if (!selectedStory || !currentCharacter || currentPages.length === 0) {
-      console.error('Cannot save story: missing data');
+  saveCustomStory: async (userId: string) => {
+    const { currentCharacter, currentPages, selectedStory } = get();
+
+    if (!currentCharacter || !currentPages.length) {
+      set({ saveError: 'No story to save' });
       return;
     }
-    
-    const customStory: CustomizedStory = {
-      storyId: `custom-${Date.now()}`,
-      character: currentCharacter,
-      pages: currentPages,
-      dateCreated: new Date()
-    };
-    
-    set(state => ({
-      customStories: [...state.customStories, customStory]
-    }));
+
+    console.log("SELECTED STORY", selectedStory?.prompt?.voiceId);
+    try {
+      const storyToSave = {
+        id: uuidv4(),
+        user_id: userId,
+        story_id: `story-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        title: selectedStory?.title || 'Untitled Story',
+        character: currentCharacter,
+        pages: currentPages,
+        date_created: new Date().toISOString(),
+        voice_id: selectedStory?.prompt?.voiceId
+      };
+
+      const response = await fetch('/api/supabase', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          story: storyToSave
+        }),
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || 'Failed to save story');
+      }
+
+      set({ saveError: null });
+    } catch (error) {
+      console.error('Error saving story:', error);
+      set({ saveError: 'Failed to save story. Please try again.' });
+    }
   },
   
   getStoryById: (storyId: string) => {

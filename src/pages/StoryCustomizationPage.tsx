@@ -8,6 +8,7 @@ import StoryCard from '../components/story/StoryCard';
 import CharacterForm from '../components/story/CharacterForm';
 import StoryPromptForm from '../components/story/StoryPromptForm';
 import { StoryCharacter, StoryPrompt } from '../types/story';
+import { useAuth } from '../contexts/AuthContext';
 
 type Step = 'select' | 'customize' | 'prompt' | 'preview';
 
@@ -15,6 +16,7 @@ export default function StoryCustomizationPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const storyId = searchParams.get('story');
+  const { user } = useAuth();
   
   const { 
     presetStories, 
@@ -50,7 +52,9 @@ export default function StoryCustomizationPage() {
     
     if (selectedStory?.isPreset) {
       await generateStory();
-      saveCustomStory();
+      if (user) {
+        await saveCustomStory(user.id);
+      }
       navigate('/read/latest');
     } else {
       setStep('prompt');
@@ -61,7 +65,9 @@ export default function StoryCustomizationPage() {
     if (!character) return;
     
     await generateCustomStory(prompt);
-    saveCustomStory();
+    if (user) {
+      await saveCustomStory(user.id);
+    }
     navigate('/read/latest');
   };
   
