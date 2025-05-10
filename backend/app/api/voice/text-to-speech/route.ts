@@ -28,6 +28,7 @@ export async function POST(request: Request) {
 
     if (!response.ok) {
       throw new Error(`ElevenLabs API error: ${response.status} ${response.statusText}`);
+    
     }
 
     // Convert the audio response to an audio blob and return it

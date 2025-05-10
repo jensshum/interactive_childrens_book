@@ -1,15 +1,45 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Menu, X, Book, Sparkles, Info, LogOut, BookOpen } from 'lucide-react';
+import { Menu, X, Book, Sparkles, Info, LogOut, BookOpen, Coins } from 'lucide-react';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
 import AuthModal from '../auth/AuthModal';
+import PaymentModal from '../payment/PaymentModal';
+import { supabase } from '../../utils/supabase';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [credits, setCredits] = useState<number>(0);
+
+  useEffect(() => {
+    if (user) {
+      fetchUserCredits();
+    }
+  }, [user]);
+
+  const fetchUserCredits = async () => {
+    if (!user) return;
+    
+    try {
+      const response = await fetch(`/api/user/credits?userId=${user.id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch credits');
+      }
+      const data = await response.json();
+      setCredits(data.credits);
+    } catch (error) {
+      console.error('Error fetching credits:', error);
+    }
+  };
+
+  const handlePaymentSuccess = async () => {
+    await fetchUserCredits();
+    setIsPaymentModalOpen(false);
+  };
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
@@ -58,12 +88,23 @@ export default function Header() {
             <NavLink to="/customize">Create Story</NavLink>
           </li>
           {user && (
-            <li>
-              <NavLink to="/my-stories" className="flex items-center space-x-1">
-                <BookOpen size={18} />
-                <span>My Stories</span>
-              </NavLink>
-            </li>
+            <>
+              <li>
+                <NavLink to="/my-stories" className="flex items-center space-x-1">
+                  <BookOpen size={18} />
+                  <span>My Stories</span>
+                </NavLink>
+              </li>
+              <li>
+                <button
+                  onClick={() => setIsPaymentModalOpen(true)}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-primary-500 transition-colors"
+                >
+                  <Coins size={18} className="text-yellow-500" />
+                  <span>{credits} Credits</span>
+                </button>
+              </li>
+            </>
           )}
           <li>
             <NavLink to="/about">About</NavLink>
@@ -103,12 +144,26 @@ export default function Header() {
             <NavLink to="/customize" onClick={toggleMenu}>Create Story</NavLink>
           </li>
           {user && (
-            <li>
-              <NavLink to="/my-stories" onClick={toggleMenu} className="flex items-center space-x-1">
-                <BookOpen size={18} />
-                <span>My Stories</span>
-              </NavLink>
-            </li>
+            <>
+              <li>
+                <NavLink to="/my-stories" onClick={toggleMenu} className="flex items-center space-x-1">
+                  <BookOpen size={18} />
+                  <span>My Stories</span>
+                </NavLink>
+              </li>
+              <li>
+                <button
+                  onClick={() => {
+                    toggleMenu();
+                    setIsPaymentModalOpen(true);
+                  }}
+                  className="flex items-center space-x-1 text-gray-600 hover:text-primary-500 transition-colors"
+                >
+                  <Coins size={18} className="text-yellow-500" />
+                  <span>{credits} Credits</span>
+                </button>
+              </li>
+            </>
           )}
           <li>
             <NavLink to="/about" onClick={toggleMenu}>About</NavLink>
@@ -145,6 +200,13 @@ export default function Header() {
       <AuthModal 
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
+      />
+
+      {/* Payment Modal */}
+      <PaymentModal
+        isOpen={isPaymentModalOpen}
+        onClose={() => setIsPaymentModalOpen(false)}
+        onSuccess={handlePaymentSuccess}
       />
     </header>
   );
