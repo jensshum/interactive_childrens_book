@@ -175,7 +175,7 @@ export const useStoryStore = create<StoryState>((set, get) => ({
       return;
     }
     
-    set({ isGenerating: true });
+    set({ isGenerating: true, currentPages: [] }); // Reset pages when starting
     
     try {
       // Update selectedStory with the prompt including voiceId
@@ -241,13 +241,18 @@ export const useStoryStore = create<StoryState>((set, get) => ({
           console.log(`Generated page ${pageId} image using ${currentCharacter.styledImage ? 'styled' : 'original'} character image`);
           
           // Create a new page with the accumulated text
-          pages.push({
+          const newPage = {
             id: pageId++,
             text: currentPageText.trim(),
             image: imageUrl,
             video: debugMode ? null : videoUrl,
             interactions: []
-          });
+          };
+          
+          pages.push(newPage);
+          // Update the store with the new page immediately
+          set(state => ({ currentPages: [...state.currentPages, newPage] }));
+          
           currentPageText = paragraph;
         } else {
           currentPageText += (currentPageText ? '\n\n' : '') + paragraph;
@@ -273,16 +278,20 @@ export const useStoryStore = create<StoryState>((set, get) => ({
         
         const { imageUrl, videoUrl } = await imageResponse.json();
         
-        pages.push({
+        const lastPage = {
           id: pageId,
           text: currentPageText.trim(),
           image: imageUrl,
           video: debugMode ? null : videoUrl,
           interactions: []
-        });
+        };
+        
+        pages.push(lastPage);
+        // Update the store with the last page
+        set(state => ({ currentPages: [...state.currentPages, lastPage] }));
       }
       
-      set({ currentPages: pages, isGenerating: false });
+      set({ isGenerating: false });
     } catch (error) {
       console.error('Error generating custom story:', error);
       set({ saveError: 'Failed to generate story. Please try again.' });

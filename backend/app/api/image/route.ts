@@ -55,7 +55,7 @@ export async function POST(request: Request) {
           prompt: imagePrompt,
           num_inference_steps: 30,
           guidance_scale: 7.5,
-          strength: 0.1
+          // strength: 0.1
         },
         logs: true,
       });

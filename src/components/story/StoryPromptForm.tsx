@@ -48,6 +48,9 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
+  const [currentPage, setCurrentPage] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+
   useEffect(() => {
     loadVoices();
     
@@ -193,8 +196,25 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
     };
     
     console.log('Submitting prompt with voiceId:', finalPrompt.voiceId); // Debug log
+    setCurrentPage(0);
+    setTotalPages(0);
     onSubmit(finalPrompt);
   };
+
+  // Add effect to listen for page generation progress
+  useEffect(() => {
+    if (isLoading) {
+      const checkProgress = setInterval(() => {
+        const { currentPages } = useStoryStore.getState();
+        if (currentPages.length > 0) {
+          setCurrentPage(currentPages.length);
+          setTotalPages(currentPages.length + 1); // Add 1 for the page being generated
+        }
+      }, 1000);
+
+      return () => clearInterval(checkProgress);
+    }
+  }, [isLoading]);
 
   const themes = [
     'Adventure', 'Fantasy', 'Mystery', 'Friendship',
@@ -531,13 +551,20 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
           className="w-full bg-primary-500 hover:bg-primary-600 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2 disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {isLoading ? (
-            <>
-              <svg className="animate-pulse -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-              </svg>
-              <span>Creating Your Story... (takes 3-5 minutes)</span>
-            </>
+            <div className="flex flex-col items-center space-y-2">
+              <div className="flex items-center space-x-2">
+                <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <span>Creating Your Story... (can take 3-5 minutes)</span>
+              </div>
+              {currentPage > 0 && totalPages > 0 && (
+                <span className="text-sm text-white/80">
+                  Generated {currentPage} of 8 pages
+                </span>
+              )}
+            </div>
           ) : (
             <>
               <Wand2 size={18} />
