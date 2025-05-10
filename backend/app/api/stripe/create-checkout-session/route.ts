@@ -20,6 +20,7 @@ export async function POST(request: Request) {
     const { priceId, quantity, userId } = await request.json();
 
     if (!userId) {
+      console.error('No user ID in session metadata');
       return new NextResponse('Unauthorized', { status: 401 });
     }
 

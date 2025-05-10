@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { cn } from '../../utils/cn';
-
+import { useAuth } from '../../contexts/AuthContext';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
@@ -15,8 +15,14 @@ interface PaymentModalProps {
 export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
 
   const handlePayment = async () => {
+    if (!user) {
+      setError('You must be signed in to make a purchase');
+      return;
+    }
+
     try {
       setIsLoading(true);
       setError(null);
@@ -29,6 +35,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
         body: JSON.stringify({
           priceId: import.meta.env.VITE_STRIPE_CREDIT_PRICE_ID,
           quantity: 1,
+          userId: user.id,
         }),
       });
 
