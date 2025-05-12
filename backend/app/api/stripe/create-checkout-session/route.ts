@@ -14,7 +14,6 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-
 export async function POST(request: Request) {
   try {
     const { priceId, quantity, userId } = await request.json();
@@ -52,8 +51,7 @@ export async function POST(request: Request) {
     console.log(`Checkout session created: ${checkoutSession.id}`);
     return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
   } catch (error: any) {
-    console.error('Error creating checkout session:', errorcatch (error: any) {xtResponse(`Internal Server Error: ${error.message}`, { status: 500 });
-  }
-} NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
+    console.error('Error creating checkout session:', error);
+    return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
   }
 }
