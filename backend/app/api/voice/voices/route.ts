@@ -1,6 +1,14 @@
 // app/api/voices/route.ts
 import { NextResponse } from 'next/server';
 
+interface Voice {
+  voice_id: string;
+  name: string;
+  category: 'premade' | 'cloned';
+  preview_url?: string;
+  labels?: Record<string, string>;
+}
+
 export async function GET() {
   try {
     const response = await fetch('https://api.elevenlabs.io/v1/voices', {
@@ -18,11 +26,11 @@ export async function GET() {
     const data = await response.json();
     
     // Filter to only include the 4 best premade voices and any cloned voices
-    const voices = data.voices || [];
+    const voices = (data.voices || []) as Voice[];
     const premadeVoices = voices
-      .filter((voice: any) => voice.category === 'premade')
+      .filter((voice) => voice.category === 'premade')
       .slice(0, 4);
-    const clonedVoices = voices.filter((voice: any) => voice.category === 'cloned');
+    const clonedVoices = voices.filter((voice) => voice.category === 'cloned');
     
     return NextResponse.json({
       voices: [...premadeVoices, ...clonedVoices]

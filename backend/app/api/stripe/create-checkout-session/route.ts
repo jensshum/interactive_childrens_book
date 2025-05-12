@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
+
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
@@ -14,7 +14,6 @@ if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
@@ -54,7 +53,8 @@ export async function POST(request: Request) {
 
     console.log(`Checkout session created: ${checkoutSession.id}`);
     return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
-  } catch (error: any) {
+  } catch (err: unknown) {
+    const error = err as Error;
     console.error('Error creating checkout session:', error);
     return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
   }

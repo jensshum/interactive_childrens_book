@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { fal } from "@fal-ai/client";
 import OpenAI from 'openai';
-import fs from "fs";
+
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,

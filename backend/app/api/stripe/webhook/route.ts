@@ -40,9 +40,10 @@ export async function POST(request: Request) {
     try {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
       console.log('Webhook signature verified successfully');
-    } catch (err: any) {
-      console.error(`Webhook signature verification failed: ${err.message}`);
-      return new NextResponse(`Webhook signature verification failed: ${err.message}`, { status: 400 });
+    } catch (err: unknown) {
+      const error = err as Error;
+      console.error(`Webhook signature verification failed: ${error.message}`);
+      return new NextResponse(`Webhook signature verification failed: ${error.message}`, { status: 400 });
     }
 
     console.log(`Processing webhook event: ${event.type}`);
@@ -55,9 +56,10 @@ export async function POST(request: Request) {
     }
 
     return new NextResponse('Webhook received but no handler for this event type', { status: 200 });
-  } catch (error: any) {
-    console.error(`Error processing webhook: ${error.message}`);
-    return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
+  } catch (error: unknown) {
+    const err = error as Error;
+    console.error(`Error processing webhook: ${err.message}`);
+    return new NextResponse(`Internal Server Error: ${err.message}`, { status: 500 });
   }
 }
 
