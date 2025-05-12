@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
@@ -35,7 +34,7 @@ export async function POST(request: Request) {
           quantity: quantity || 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/customize`,
       metadata: {
         userId: userId,

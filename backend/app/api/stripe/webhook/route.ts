@@ -26,6 +26,8 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey, {
   }
 });
 
+console.log('WEBHOOK MAGIC');
+
 export async function POST(request: Request) {
   console.log('Webhook received!');
   
