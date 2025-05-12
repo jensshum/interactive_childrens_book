@@ -35,7 +35,7 @@ export async function POST(request: Request) {
           quantity: quantity || 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/`,
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/sign-in`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/customize`,
       metadata: {
         userId: userId,
