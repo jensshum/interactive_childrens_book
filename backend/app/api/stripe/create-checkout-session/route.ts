@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Stripe from 'stripe';
-
+import { createClient } from '@supabase/supabase-js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
@@ -40,22 +40,20 @@ export async function POST(request: Request) {
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/customize`,
       metadata: {
         userId: userId,
-        quantity: quantity.toString(),
       },
       // Transfer metadata to the payment intent as well
       payment_intent_data: {
         metadata: {
           userId: userId,
-          quantity: quantity.toString(),
         },
       },
     });
 
     console.log(`Checkout session created: ${checkoutSession.id}`);
     return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
-  } catch (err: unknown) {
-    const error = err as Error;
-    console.error('Error creating checkout session:', error);
-    return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
+  } catch (error: any) {
+    console.error('Error creating checkout session:', errorcatch (error: any) {xtResponse(`Internal Server Error: ${error.message}`, { status: 500 });
+  }
+} NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
   }
 }
