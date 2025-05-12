@@ -38,6 +38,7 @@ export async function GET(request: Request) {
     }
 
     // Return the credits (default to 0 if no record exists)
+    console.log('User credits:', data?.credits);
     return NextResponse.json({ credits: data?.credits || 0 });
   } catch (error) {
     console.error('Error in credits route:', error);
@@ -46,4 +47,68 @@ export async function GET(request: Request) {
       { status: 500 }
     );
   }
-} 
+}
+
+export async function POST(request: Request) {
+  try {
+    const { userId } = await request.json();
+
+    if (!userId) {
+      return NextResponse.json(
+        { error: 'Missing userId in request body' },
+        { status: 400 }
+      );
+    }
+
+    // Fetch current user credits
+    const { data: currentCredits, error: fetchError } = await supabase
+      .from('user_credits')
+      .select('credits')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching user credits:', fetchError);
+      return NextResponse.json(
+        { error: 'Error fetching user credits' },
+        { status: 500 }
+      );
+    }
+
+    const credits = currentCredits?.credits || 0;
+
+    if (credits < 1) {
+      return NextResponse.json(
+        { error: 'Insufficient credits' },
+        { status: 400 }
+      );
+    }
+
+    // Decrement credits by 1
+    const newCredits = credits - 1;
+
+    // Update or insert the new credits value
+    const { error: updateError } = await supabase
+      .from('user_credits')
+      .upsert(
+        { user_id: userId, credits: newCredits },
+        { onConflict: 'user_id' }
+      );
+
+    if (updateError) {
+      console.error('Error updating user credits:', updateError);
+      return NextResponse.json(
+        { error: 'Error updating user credits' },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ credits: newCredits });
+  } catch (error) {
+    console.error('Error in credits update route:', error);
+    return NextResponse.json(
+      { error: 'Internal Server Error' },
+      { status: 500 }
+    );
+  }
+}

@@ -10,7 +10,7 @@ const features = [
   {
     icon: <Brain className="h-6 w-6 text-secondary-500" />,
     title: 'AI-Powered Creation',
-    description: 'Gemini AI helps create unique, engaging stories tailored to your child\'s interests and age.'
+    description: 'AI helps create unique, engaging stories tailored to your child\'s interests and age.'
   },
   {
     icon: <MessageSquare className="h-6 w-6 text-tertiary-500" />,

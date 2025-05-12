@@ -1,16 +1,21 @@
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { LogIn, Loader2 } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SignInPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { signIn } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Get the redirect path and message from location state
+  const from = location.state?.from || '/my-stories';
+  const message = location.state?.message;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -19,7 +24,7 @@ export default function SignInPage() {
 
     try {
       await signIn(email, password);
-      navigate('/my-stories');
+      navigate(from);
     } catch (err) {
       console.error('Error signing in:', err);
       setError('Invalid email or password. Please try again.');
@@ -49,6 +54,11 @@ export default function SignInPage() {
               create a new account
             </Link>
           </p>
+          {message && (
+            <p className="mt-2 text-center text-sm text-gray-600">
+              {message}
+            </p>
+          )}
         </div>
 
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>

@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { X, Loader2 } from 'lucide-react';
+import { X, Loader2, Minus, Plus } from 'lucide-react';
 import { loadStripe } from '@stripe/stripe-js';
 import { cn } from '../../utils/cn';
 import { useAuth } from '../../contexts/AuthContext';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+const CREDIT_PRICE = 1.00; // Price per credit in USD
 
 interface PaymentModalProps {
   isOpen: boolean;
@@ -15,7 +16,14 @@ interface PaymentModalProps {
 export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModalProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [quantity, setQuantity] = useState(1);
   const { user } = useAuth();
+
+  const handleQuantityChange = (newQuantity: number) => {
+    if (newQuantity >= 1 && newQuantity <= 10) {
+      setQuantity(newQuantity);
+    }
+  };
 
   const handlePayment = async () => {
     if (!user) {
@@ -34,7 +42,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
         },
         body: JSON.stringify({
           priceId: import.meta.env.VITE_STRIPE_CREDIT_PRICE_ID,
-          quantity: 1,
+          quantity: quantity,
           userId: user.id,
         }),
       });
@@ -69,6 +77,8 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
 
   if (!isOpen) return null;
 
+  const totalPrice = (CREDIT_PRICE * quantity).toFixed(2);
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
       <div className="bg-white rounded-xl p-6 max-w-md w-full mx-4">
@@ -87,9 +97,37 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
             You need credits to create more stories. Each story costs 1 credit.
           </p>
           <div className="bg-gray-50 p-4 rounded-lg">
-            <div className="flex justify-between items-center">
-              <span className="text-gray-700">1 Credit</span>
-              <span className="font-bold text-gray-900">$1.00</span>
+            <div className="flex flex-col space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-700">Quantity</span>
+                <div className="flex items-center space-x-3">
+                  <button
+                    onClick={() => handleQuantityChange(quantity - 1)}
+                    disabled={quantity <= 1}
+                    className={cn(
+                      "p-1 rounded-full hover:bg-gray-200 transition-colors",
+                      quantity <= 1 && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <Minus size={16} />
+                  </button>
+                  <span className="w-8 text-center font-medium">{quantity}</span>
+                  <button
+                    onClick={() => handleQuantityChange(quantity + 1)}
+                    disabled={quantity >= 10}
+                    className={cn(
+                      "p-1 rounded-full hover:bg-gray-200 transition-colors",
+                      quantity >= 10 && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <Plus size={16} />
+                  </button>
+                </div>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                <span className="text-gray-700">Total</span>
+                <span className="font-bold text-gray-900">${totalPrice}</span>
+              </div>
             </div>
           </div>
         </div>
@@ -121,7 +159,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
                 Processing...
               </>
             ) : (
-              'Purchase Credit'
+              `Purchase ${quantity} Credit${quantity > 1 ? 's' : ''}`
             )}
           </button>
         </div>

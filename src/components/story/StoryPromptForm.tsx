@@ -207,29 +207,60 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
       return;
     }
 
-    // Process raw input strings into arrays only when submitting
-    const processedCharacters = charactersInput
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+    if (!user) {
+      console.error('No user authenticated');
+      return;
+    }
+
+    try {
+      // Attempt to decrement credits
+      const response = await fetch('/api/user/credits', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userId: user.id }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        if (errorData.error === 'Insufficient credits') {
+          setShowPaymentModal(true);
+          return;
+        }
+        throw new Error(errorData.error || 'Failed to decrement credits');
+      }
+
+      const data = await response.json();
+      setUserCredits(data.credits); // Update local credits state
+
+      // Process raw input strings into arrays only when submitting
+      const processedCharacters = charactersInput
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
       
-    const processedPlotElements = plotElementsInput
-      .split(',')
-      .map(s => s.trim())
-      .filter(s => s.length > 0);
+      const processedPlotElements = plotElementsInput
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s.length > 0);
     
-    // Create the final prompt with processed arrays and ensure voiceId is included
-    const finalPrompt = {
-      ...prompt,
-      characters: processedCharacters,
-      plotElements: processedPlotElements,
-      voiceId: prompt.voiceId
-    };
+      // Create the final prompt with processed arrays and ensure voiceId is included
+      const finalPrompt = {
+        ...prompt,
+        characters: processedCharacters,
+        plotElements: processedPlotElements,
+        voiceId: prompt.voiceId
+      };
     
-    console.log('Submitting prompt with voiceId:', finalPrompt.voiceId);
-    setCurrentPage(0);
-    setTotalPages(0);
-    onSubmit(finalPrompt);
+      console.log('Submitting prompt with voiceId:', finalPrompt.voiceId);
+      setCurrentPage(0);
+      setTotalPages(0);
+      onSubmit(finalPrompt);
+    } catch (error) {
+      console.error('Error during submission:', error);
+      setShowPaymentModal(true); // Show payment modal on any error for simplicity
+    }
   };
 
   const handlePaymentSuccess = async () => {
@@ -603,11 +634,11 @@ export default function StoryPromptForm({ onSubmit, isLoading = false }: StoryPr
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  <span>Creating Your Story... (can take 3-5 minutes)</span>
+                  <span>Creating Your Story... (can take 5-8 minutes)</span>
                 </div>
                 {currentPage > 0 && totalPages > 0 && (
                   <span className="text-sm text-white/80">
-                    Generated {currentPage} of 8 pages
+                    Generated {currentPage+1} of 9 pages
                   </span>
                 )}
               </div>

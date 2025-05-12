@@ -7,22 +7,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
 });
 
 const supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY!;
+// Use service role key for admin operations if needed
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabaseServiceKey) {
   throw new Error('Missing Supabase environment variables');
 }
 
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 export async function POST(request: Request) {
   try {
     const { priceId, quantity, userId } = await request.json();
 
     if (!userId) {
-      console.error('No user ID in session metadata');
+      console.error('No user ID provided');
       return new NextResponse('Unauthorized', { status: 401 });
     }
+
+    console.log(`Creating checkout session for user: ${userId}, price: ${priceId}, quantity: ${quantity}`);
 
     // Create Stripe checkout session
     const checkoutSession = await stripe.checkout.sessions.create({
@@ -31,19 +34,28 @@ export async function POST(request: Request) {
       line_items: [
         {
           price: priceId,
-          quantity: quantity,
+          quantity: quantity || 1,
         },
       ],
       success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/customize`,
       metadata: {
         userId: userId,
+        quantity: quantity.toString(),
+      },
+      // Transfer metadata to the payment intent as well
+      payment_intent_data: {
+        metadata: {
+          userId: userId,
+          quantity: quantity.toString(),
+        },
       },
     });
 
-    return NextResponse.json({ sessionId: checkoutSession.id });
-  } catch (error) {
+    console.log(`Checkout session created: ${checkoutSession.id}`);
+    return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
+  } catch (error: any) {
     console.error('Error creating checkout session:', error);
-    return new NextResponse('Internal Server Error', { status: 500 });
+    return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
   }
-} 
+}

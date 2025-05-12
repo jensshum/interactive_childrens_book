@@ -7,6 +7,7 @@ import AboutPage from './pages/AboutPage';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import MyStoriesPage from './pages/MyStoriesPage';
+import PaymentSuccessPage from './pages/PaymentSuccessPage';
 import PrivateRoute from './components/auth/PrivateRoute';
 import AuthCheck from './components/auth/AuthCheck';
 
@@ -32,6 +33,14 @@ export default function AppRoutes() {
           element={
             <PrivateRoute>
               <MyStoriesPage />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="payment-success"
+          element={
+            <PrivateRoute>
+              <PaymentSuccessPage />
             </PrivateRoute>
           }
         />
