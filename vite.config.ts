@@ -21,7 +21,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'https://storypals.netlify.app', // Backend server
+        target: 'https://api-storypals.netlify.app', // Backend server
         changeOrigin: true,
         secure: false
       }
