@@ -1,6 +1,6 @@
 [build]
   # Base directory is the monorepo root
-  command = "npm install && npm run build:frontend"
+  command = "npm run build"
   # Publish directory for the frontend
   publish = "dist"
 
