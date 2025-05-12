@@ -1,5 +1,5 @@
 [build]
-  command = "cd backend && npm run build && cd .. && npm run build"
+  command = "npm run build"
   publish = "build"
   functions = "backend/.netlify/functions"
   environment = { NODE_VERSION = "18" }
