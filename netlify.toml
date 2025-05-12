@@ -1,8 +1,8 @@
 [build]
-  command = "npm run build"
+  command = "cd backend && npm run build && cd .. && npm run build"
   publish = "dist"
-  #functions = "backend/.netlify/functions"
-  #environment = { NODE_VERSION = "18" }
+  functions = "backend/.netlify/functions"
+  environment = { NODE_VERSION = "18" }
 
 #[[plugins]]
 #  package = "@netlify/plugin-nextjs"
