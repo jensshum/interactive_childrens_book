@@ -1,8 +1,8 @@
 [build]
   command = "npm run build"
   publish = "build"
-  functions = "backend/.netlify/functions"
-  environment = { NODE_VERSION = "18" }
+  #functions = "backend/.netlify/functions"
+  #environment = { NODE_VERSION = "18" }
 
-[[plugins]]
-  package = "@netlify/plugin-nextjs"
+#[[plugins]]
+#  package = "@netlify/plugin-nextjs"
