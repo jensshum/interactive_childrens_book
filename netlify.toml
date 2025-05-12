@@ -1,7 +1,8 @@
 [build]
-    command = "cd backend && npm run build"
-    publish = "dist"
-    functions = "backend/.netlify/functions"
+  # Base directory is the monorepo root
+  command = "npm install && npm run build:frontend"
+  # Publish directory for the frontend
+  publish = "dist"
 
-[[plugins]]
-    package = "@netlify/plugin-nextjs"
+[build.environment]
+  NODE_VERSION = "18"

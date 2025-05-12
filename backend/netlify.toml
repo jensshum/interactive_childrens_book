@@ -1,0 +1,14 @@
+[build]
+  # Base directory is the backend folder
+  base = "backend"
+  command = "npm install && npm run build"
+  # Publish directory for Next.js (handled by the plugin)
+  publish = ".next"
+  # Functions directory for serverless functions
+  functions = ".netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
