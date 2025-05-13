@@ -7,6 +7,25 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2025-04-30.basil',
 });
 
+export async function GET(request: Request) {
+  console.log('Webhook received! Method: GET');
+  console.log('Headers:', Object.fromEntries(request.headers));
+  return new NextResponse('Method not allowed', { status: 405 });
+}
+
+export async function OPTIONS(request: Request) {
+  console.log('Webhook received! Method: OPTIONS');
+  console.log('Headers:', Object.fromEntries(request.headers));
+  return new NextResponse(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'POST',
+      'Access-Control-Allow-Headers': 'Content-Type, Stripe-Signature',
+    },
+  });
+}
+
 const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || '';
 
 console.log('Webhook secret length:', webhookSecret.length);
