@@ -13,5 +13,5 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-  [functions]
-   timeout = 400
+[functions.timeout]
+  seconds = 30
