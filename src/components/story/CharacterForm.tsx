@@ -62,7 +62,7 @@ export default function CharacterForm({ onSubmit, isLoading = false }: Character
       console.log('Character with styled image:', styledCharacter);
       onSubmit(styledCharacter);
     } catch (error) {
-      console.error('Error generating styled character:', error);
+      console.log('Error generating styled character:', error);
       // Still submit the form with original image if styling fails
       onSubmit(character);
     } finally {

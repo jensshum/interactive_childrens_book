@@ -18,7 +18,7 @@ export async function POST(request: Request) {
     const { priceId, quantity, userId } = await request.json();
 
     if (!userId) {
-      console.error('No user ID provided');
+      console.log('No user ID provided');
       return new NextResponse('Unauthorized', { status: 401 });
     }
 
@@ -34,23 +34,31 @@ export async function POST(request: Request) {
           quantity: quantity || 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      // Include the quantity in the metadata and success URL
+      success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment-success?session_id={CHECKOUT_SESSION_ID}&quantity=${quantity}`,
       cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/customize`,
       metadata: {
         userId: userId,
+        quantity: quantity.toString(),
       },
       // Transfer metadata to the payment intent as well
       payment_intent_data: {
         metadata: {
           userId: userId,
+          quantity: quantity.toString(),
         },
       },
     });
 
     console.log(`Checkout session created: ${checkoutSession.id}`);
-    return NextResponse.json({ sessionId: checkoutSession.id, url: checkoutSession.url });
+    
+    // Return both the session ID and the URL so the frontend can handle the redirect
+    return NextResponse.json({ 
+      sessionId: checkoutSession.id, 
+      url: checkoutSession.url 
+    });
   } catch (error: any) {
-    console.error('Error creating checkout session:', error);
+    console.log('Error creating checkout session:', error);
     return new NextResponse(`Internal Server Error: ${error.message}`, { status: 500 });
   }
 }

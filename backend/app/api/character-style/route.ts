@@ -40,7 +40,7 @@ export async function POST(request: Request) {
       imageUrl: imageUrl
     });
   } catch (error) {
-    console.error('Error generating styled character image:', error);
+    console.log('Error generating styled character image:', error);
     return NextResponse.json(
       { error: 'Failed to generate styled character image' },
       { status: 500 }

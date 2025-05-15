@@ -51,7 +51,37 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
         throw new Error('Failed to create checkout session');
       }
 
-      const { sessionId } = await response.json();
+      const { sessionId, url } = await response.json();
+      
+      // If the API returns a direct URL, use it instead of redirectToCheckout
+      if (url) {
+        // For local development, ensure we're using the correct protocol and port
+        const isDevelopment = import.meta.env.MODE === 'development';
+        
+        if (isDevelopment && url.includes('localhost')) {
+          // Parse the URL to modify it
+          const redirectUrl = new URL(url);
+          
+          // Replace https with http for localhost in development
+          if (redirectUrl.protocol === 'https:' && redirectUrl.hostname === 'localhost') {
+            redirectUrl.protocol = 'http:';
+          }
+          
+          // Replace port 3000 with 5173 if needed
+          if (redirectUrl.port === '3000') {
+            redirectUrl.port = '5173';
+          }
+          
+          console.log(`Redirecting to: ${redirectUrl.toString()}`);
+          window.location.href = redirectUrl.toString();
+        } else {
+          // In production, use the URL as-is
+          window.location.href = url;
+        }
+        return;
+      }
+      
+      // Otherwise, fall back to the client-side redirect
       const stripe = await stripePromise;
 
       if (!stripe) {
@@ -66,6 +96,7 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
         throw error;
       }
 
+      // Note: This won't execute until after redirect
       onSuccess();
     } catch (err) {
       console.error('Payment error:', err);
@@ -166,4 +197,4 @@ export default function PaymentModal({ isOpen, onClose, onSuccess }: PaymentModa
       </div>
     </div>
   );
-} 
+}

@@ -23,7 +23,7 @@ export async function POST(request: Request) {
     if (error) throw error;
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error saving story:', error);
+    console.log('Error saving story:', error);
     return NextResponse.json(
       { error: 'Failed to save story' },
       { status: 500 }
@@ -52,7 +52,7 @@ export async function GET(request: Request) {
     if (error) throw error;
     return NextResponse.json({ data });
   } catch (error) {
-    console.error('Error fetching stories:', error);
+    console.log('Error fetching stories:', error);
     return NextResponse.json(
       { error: 'Failed to fetch stories' },
       { status: 500 }
@@ -81,7 +81,7 @@ export async function DELETE(request: Request) {
     if (error) throw error;
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error deleting story:', error);
+    console.log('Error deleting story:', error);
     return NextResponse.json(
       { error: 'Failed to delete story' },
       { status: 500 }

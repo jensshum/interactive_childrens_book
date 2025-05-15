@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       console.log('Webhook signature verified successfully');
     } catch (err: unknown) {
       const error = err as Error;
-      console.error(`Webhook signature verification failed: ${error.message}`);
+      console.log(`Webhook signature verification failed: ${error.message}`);
       return new NextResponse(`Webhook signature verification failed: ${error.message}`, { status: 400 });
     }
 
@@ -79,7 +79,7 @@ export async function POST(request: Request) {
     return new NextResponse('Webhook received but no handler for this event type', { status: 200 });
   } catch (error: unknown) {
     const err = error as Error;
-    console.error(`Error processing webhook: ${err.message}`);
+    console.log(`Error processing webhook: ${err.message}`);
     return new NextResponse(`Internal Server Error: ${err.message}`, { status: 500 });
   }
 }
@@ -90,7 +90,7 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session) {
   
   const userId = session.metadata?.userId;
   if (!userId) {
-    console.error('No user ID in session metadata');
+    console.log('No user ID in session metadata');
     return new NextResponse('No user ID in session metadata', { status: 400 });
   }
 
@@ -128,10 +128,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         return await updateUserCredits(sessionUserId, quantity);
       }
     } catch (err) {
-      console.error('Error looking up associated session:', err);
+      console.log('Error looking up associated session:', err);
     }
     
-    console.error('Could not find user ID in payment intent or associated sessions');
+    console.log('Could not find user ID in payment intent or associated sessions');
     return new NextResponse('No user ID found', { status: 400 });
   }
 
@@ -190,7 +190,7 @@ async function updateUserCredits(userId: string, creditsToAdd: number) {
 
   // Check for errors in the operation
   if (result.error) {
-    console.error(`Error updating/inserting credits: ${result.error.message}`);
+    console.log(`Error updating/inserting credits: ${result.error.message}`);
     return new NextResponse(`Database error: ${result.error.message}`, { status: 500 });
   }
 
